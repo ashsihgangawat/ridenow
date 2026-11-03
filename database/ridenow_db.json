@@ -27,11 +27,11 @@
     {
       "id": "b7d4eb90-7a8b-4d2d-a2a5-c004823ec9fd",
       "createdAt": "2026-10-30T11:43:32.864Z",
-      "updatedAt": "2026-11-03T12:39:31.808Z",
+      "updatedAt": "2026-11-03T13:03:08.584Z",
       "email": "rahul.verma@gmail.com",
       "phone": "+919811122233",
       "fullName": "Rahul Verma",
-      "passwordHash": "$2a$10$fz9eUXVm0cEDlkdHlpc7HuVnJnYxP2StmgVDvXWrzffZ.0FQClJr6",
+      "passwordHash": "$2a$10$Yp0CwyalxSkrLYIplWbgM.6qdM1NfEA..hnPQJS2yc/8CgA/XCkPC",
       "role": "RIDER",
       "status": "ACTIVE",
       "preferredLang": "en"
@@ -39,11 +39,11 @@
     {
       "id": "a01fa555-1e91-4a74-a451-12c3fc01bc97",
       "createdAt": "2026-10-30T11:43:32.864Z",
-      "updatedAt": "2026-11-03T12:39:31.810Z",
+      "updatedAt": "2026-11-03T13:03:08.585Z",
       "email": "ananya.sen@gmail.com",
       "phone": "+919811122244",
       "fullName": "Ananya Sen",
-      "passwordHash": "$2a$10$fz9eUXVm0cEDlkdHlpc7HuVnJnYxP2StmgVDvXWrzffZ.0FQClJr6",
+      "passwordHash": "$2a$10$Yp0CwyalxSkrLYIplWbgM.6qdM1NfEA..hnPQJS2yc/8CgA/XCkPC",
       "role": "RIDER",
       "status": "ACTIVE",
       "preferredLang": "en"
@@ -51,11 +51,11 @@
     {
       "id": "003ac4a8-48be-44a7-8721-f7c47a93ebc1",
       "createdAt": "2026-10-30T11:43:32.865Z",
-      "updatedAt": "2026-11-03T12:39:31.938Z",
+      "updatedAt": "2026-11-03T13:03:08.720Z",
       "email": "rajesh.kumar@driver.ridenow.in",
       "phone": "+919876543210",
       "fullName": "Rajesh Kumar (Auto Partner)",
-      "passwordHash": "$2a$10$BCLBqJKpMQPOcKTUsPQ.e.614Wi48mizxUtrR7Mia9lHq4OOd.02S",
+      "passwordHash": "$2a$10$lsk5vXXQIj20G7lhmfdv9OlanIzGzpUdK2NegpdT3ugZFZmJpZPU.",
       "role": "DRIVER",
       "status": "ACTIVE"
     },
@@ -416,11 +416,11 @@
     {
       "id": "a42ab127-8656-49de-80c4-146ea359b727",
       "createdAt": "2026-11-02T13:07:12.031Z",
-      "updatedAt": "2026-11-03T12:39:31.874Z",
+      "updatedAt": "2026-11-03T13:03:08.652Z",
       "email": "demo.rider@ridenow.in",
       "phone": "+919893011223",
       "fullName": "Demo Rider",
-      "passwordHash": "$2a$10$YdtAoNrhp8W.fcHEULQjMeFgds/.CWipAq9BM1RNzmJ36GLpdC7K.",
+      "passwordHash": "$2a$10$Xil.tAtd0Fdsa1rS96W7reSo6VeVfi/bqu0xK/513kdMd3rl2A6Um",
       "role": "RIDER",
       "status": "ACTIVE",
       "preferredLang": "en"

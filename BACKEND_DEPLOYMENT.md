@@ -95,3 +95,4 @@ Once live at `https://<your-service-name>.onrender.com`:
 - **Spin-down / Inactivity**: Free Web Services sleep after 15 minutes without inbound traffic. The first request after sleep may take ~30-50 seconds to wake up (cold start).
 - **Keep-Alive (Optional)**: You can use an uptime monitor (e.g., UptimeRobot, Cron-job.org) hitting `https://<your-service-name>.onrender.com/health` every 10-14 minutes to prevent cold starts during testing.
 - **Ephemeral Storage**: Files written to disk on the Free tier reset on server restart. For permanent driver records in production, link to a managed database (e.g., Render Free PostgreSQL or Supabase).
+
