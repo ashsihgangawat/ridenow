@@ -1,0 +1,15 @@
+{
+  "name": "ridenow",
+  "version": "1.0.0",
+  "description": "RideNow - Complete Production-Oriented Ride Booking Platform for India",
+  "private": true,
+  "scripts": {
+    "dev:backend": "cd backend && npm run start",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm run start",
+    "test": "cd backend && node test/runAllTests.js",
+    "seed": "cd backend && npm run seed"
+  }
+}
+

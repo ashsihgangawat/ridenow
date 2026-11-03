@@ -1,0 +1,6 @@
+package com.ridenow.app
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()
+
