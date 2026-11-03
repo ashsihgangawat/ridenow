@@ -18,18 +18,57 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Dynamic CORS Configuration for Local Dev + Production (AWS Amplify & Custom Domains)
+cors_origins_env = os.environ.get("CORS_ORIGINS", "")
+allowed_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()]
+if not allowed_origins:
+    allowed_origins = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "https://ridenow.in",
+        "https://www.ridenow.in",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.amplifyapp\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ---------------------------------------------------------
+# Health Check Endpoints (For Render & Monitoring)
+# ---------------------------------------------------------
+@app.get("/health", tags=["Health"])
+@app.get("/api/health", tags=["Health"])
+def health_check():
+    return {
+        "status": "healthy",
+        "service": "RideNow Driver Verification & Fleet API",
+        "environment": os.environ.get("ENVIRONMENT", "production"),
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "version": "1.0.0"
+    }
+
+# ---------------------------------------------------------
 # In-Memory / File-Backed Database (Shared with RideNow DB)
 # ---------------------------------------------------------
-DB_FILE = os.path.join(os.path.dirname(__file__), "../../../database/ridenow_db.json")
+# Robust database path resolver across standalone, monorepo, and Render environments
+def get_db_path() -> str:
+    env_path = os.environ.get("DATABASE_PATH")
+    if env_path:
+        return env_path
+    repo_root_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../database/ridenow_db.json"))
+    if os.path.exists(repo_root_db):
+        return repo_root_db
+    local_db = os.path.abspath(os.path.join(os.path.dirname(__file__), "data/ridenow_db.json"))
+    return local_db
+
+DB_FILE = get_db_path()
 
 def load_db() -> Dict[str, Any]:
     if os.path.exists(DB_FILE):
@@ -99,6 +138,20 @@ class DriverRejectRequest(BaseModel):
 
 class DriverSuspendRequest(BaseModel):
     suspensionReason: str = "Account suspended by safety & compliance team"
+
+# Optional Firebase Admin SDK safe initialization from environment variable
+firebase_app = None
+firebase_json_env = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
+if firebase_json_env:
+    try:
+        import firebase_admin
+        from firebase_admin import credentials, auth as fb_auth
+        cred_dict = json.loads(firebase_json_env)
+        cred = credentials.Certificate(cred_dict)
+        firebase_app = firebase_admin.initialize_app(cred)
+        print("[Firebase] Admin SDK initialized successfully from environment.")
+    except Exception as e:
+        print(f"[Firebase] Warning: Could not initialize Firebase Admin SDK: {e}")
 
 # ---------------------------------------------------------
 # Security & Token Verification Helper
@@ -538,5 +591,7 @@ def reject_driver(driver_id: str, req: DriverRejectRequest, admin: Dict[str, Any
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    is_dev = os.environ.get("ENVIRONMENT", "development").lower() == "development"
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=is_dev)
 
