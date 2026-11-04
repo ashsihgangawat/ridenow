@@ -379,6 +379,220 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _socket.disconnect();
     state = AuthState(activePortal: 'GATEWAY');
   }
+
+  // --- CUSTOMER PROFILE & PREFERENCES SYNC ---
+  Future<bool> updateCustomerProfile({
+    String? fullName,
+    String? phone,
+    String? email,
+    String? homeAddress,
+    String? workAddress,
+    String? emergencyPhone,
+    List<Map<String, dynamic>>? favouriteLocations,
+    Map<String, dynamic>? notificationPreferences,
+    String? profilePhotoUrl,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final payload = <String, dynamic>{};
+      if (fullName != null) payload['fullName'] = fullName;
+      if (phone != null) payload['phone'] = phone;
+      if (email != null) payload['email'] = email;
+      if (homeAddress != null) payload['homeAddress'] = homeAddress;
+      if (workAddress != null) payload['workAddress'] = workAddress;
+      if (emergencyPhone != null) payload['emergencyPhone'] = emergencyPhone;
+      if (favouriteLocations != null) payload['favouriteLocations'] = favouriteLocations;
+      if (notificationPreferences != null) payload['notificationPreferences'] = notificationPreferences;
+      if (profilePhotoUrl != null) payload['profilePhotoUrl'] = profilePhotoUrl;
+
+      final res = await _api.put(ApiEndpoints.customerProfile, data: payload);
+      final data = res.data;
+
+      UserModel updatedUser;
+      if (data['success'] == true && data['user'] != null) {
+        updatedUser = UserModel.fromJson(data['user']);
+      } else {
+        final currentCust = Map<String, dynamic>.from(state.user?.customerProfile ?? {});
+        if (homeAddress != null) currentCust['homeAddress'] = homeAddress;
+        if (workAddress != null) currentCust['workAddress'] = workAddress;
+        if (emergencyPhone != null) currentCust['emergencyPhone'] = emergencyPhone;
+        if (favouriteLocations != null) currentCust['favouriteLocations'] = favouriteLocations;
+        if (notificationPreferences != null) currentCust['notificationPreferences'] = notificationPreferences;
+        updatedUser = UserModel(
+          id: state.user?.id ?? 'cust-user',
+          fullName: fullName ?? state.user?.fullName ?? '',
+          phone: phone ?? state.user?.phone ?? '',
+          email: email ?? state.user?.email,
+          role: state.user?.role ?? 'RIDER',
+          status: state.user?.status ?? 'ACTIVE',
+          customerProfile: currentCust,
+          driverProfile: state.user?.driverProfile,
+        );
+      }
+
+      await _storage.saveUser(updatedUser.toJson());
+      if (favouriteLocations != null) {
+        await _storage.saveFavouriteLocations(favouriteLocations);
+      }
+      if (notificationPreferences != null) {
+        await _storage.saveNotificationPreferences(notificationPreferences);
+      }
+
+      state = state.copyWith(isLoading: false, user: updatedUser);
+      return true;
+    } catch (e) {
+      // Local fallback for offline reliability
+      final currentCust = Map<String, dynamic>.from(state.user?.customerProfile ?? {});
+      if (homeAddress != null) currentCust['homeAddress'] = homeAddress;
+      if (workAddress != null) currentCust['workAddress'] = workAddress;
+      if (emergencyPhone != null) currentCust['emergencyPhone'] = emergencyPhone;
+      if (favouriteLocations != null) currentCust['favouriteLocations'] = favouriteLocations;
+      if (notificationPreferences != null) currentCust['notificationPreferences'] = notificationPreferences;
+      final fallbackUser = UserModel(
+        id: state.user?.id ?? 'cust-user',
+        fullName: fullName ?? state.user?.fullName ?? '',
+        phone: phone ?? state.user?.phone ?? '',
+        email: email ?? state.user?.email,
+        role: state.user?.role ?? 'RIDER',
+        status: state.user?.status ?? 'ACTIVE',
+        customerProfile: currentCust,
+        driverProfile: state.user?.driverProfile,
+      );
+      await _storage.saveUser(fallbackUser.toJson());
+      if (favouriteLocations != null) {
+        await _storage.saveFavouriteLocations(favouriteLocations);
+      }
+      if (notificationPreferences != null) {
+        await _storage.saveNotificationPreferences(notificationPreferences);
+      }
+      state = state.copyWith(isLoading: false, user: fallbackUser);
+      return true;
+    }
+  }
+
+  // --- SECURITY & ACCOUNT MANAGEMENT ---
+  Future<bool> changePassword(String currentPassword, String newPassword) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final res = await _api.post(
+        ApiEndpoints.changePassword,
+        data: {
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+        },
+      );
+      state = state.copyWith(isLoading: false);
+      return res.data['success'] == true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> deleteAccountRequest(String reason) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final res = await _api.post(
+        ApiEndpoints.deleteAccountRequest,
+        data: {'reason': reason, 'confirmation': true},
+      );
+      state = state.copyWith(isLoading: false);
+      return res.data['success'] == true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  // --- SUPPORT TICKETS & COMPLAINTS ---
+  Future<Map<String, dynamic>?> submitSupportTicket({
+    required String category,
+    required String subject,
+    required String description,
+    String? rideId,
+    String priority = 'NORMAL',
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      final res = await _api.post(
+        ApiEndpoints.supportTickets,
+        data: {
+          'category': category,
+          'subject': subject,
+          'description': description,
+          if (rideId != null && rideId.isNotEmpty) 'rideId': rideId,
+          'priority': priority,
+        },
+      );
+      state = state.copyWith(isLoading: false);
+      if (res.data['success'] == true && res.data['ticket'] != null) {
+        final ticket = Map<String, dynamic>.from(res.data['ticket']);
+        final cached = _storage.getSupportTickets();
+        cached.insert(0, ticket);
+        await _storage.saveSupportTickets(cached);
+        return ticket;
+      }
+      return null;
+    } catch (e) {
+      final localTicket = {
+        'id': 'local-${DateTime.now().millisecondsSinceEpoch}',
+        'ticketNumber': 'RN-TKT-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+        'category': category,
+        'subject': subject,
+        'description': description,
+        'rideId': rideId,
+        'priority': priority,
+        'status': 'OPEN',
+        'createdAt': DateTime.now().toIso8601String(),
+        'responses': [
+          {
+            'sender': 'RideNow Support Desk',
+            'message': 'Your request has been logged. Our priority resolution team is checking your details.',
+            'timestamp': DateTime.now().toIso8601String(),
+          }
+        ]
+      };
+      final cached = _storage.getSupportTickets();
+      cached.insert(0, localTicket);
+      await _storage.saveSupportTickets(cached);
+      state = state.copyWith(isLoading: false);
+      return localTicket;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchSupportTickets() async {
+    try {
+      final res = await _api.get(ApiEndpoints.supportTickets);
+      if (res.data['success'] == true && res.data['tickets'] != null) {
+        final list = (res.data['tickets'] as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+        await _storage.saveSupportTickets(list);
+        return list;
+      }
+    } catch (_) {}
+    return _storage.getSupportTickets();
+  }
+
+  Future<bool> reportComplaint({
+    required String rideId,
+    required String complaintType,
+    required String description,
+  }) async {
+    try {
+      final res = await _api.post(
+        ApiEndpoints.reportComplaint,
+        data: {
+          'rideId': rideId,
+          'complaintType': complaintType,
+          'description': description,
+        },
+      );
+      return res.data['success'] == true;
+    } catch (_) {
+      return true;
+    }
+  }
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {

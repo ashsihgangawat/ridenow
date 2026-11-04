@@ -49,8 +49,18 @@ class ApiEndpoints {
   static String unreadChatCount(String rideId) =>
       '/api/chat/$rideId/unread-count';
   static String contactDetails(String rideId) => '/api/chat/$rideId/contact';
+
   // Payments & Settlements (Razorpay & Cash)
   static const String createPaymentOrder = '/api/payments/create-order';
   static const String verifyPayment = '/api/payments/verify';
   static const String confirmCashPayment = '/api/payments/cash';
+
+  // Support & Feedback
+  static const String supportTickets = '/api/support/tickets';
+  static String supportTicketDetails(String id) => '/api/support/tickets/$id';
+  static const String reportComplaint = '/api/support/complaint';
+
+  // Account & Security
+  static const String changePassword = '/api/auth/change-password';
+  static const String deleteAccountRequest = '/api/customer/delete-account-request';
 }

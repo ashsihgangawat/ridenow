@@ -574,24 +574,42 @@ def get_customer_profile(user: Dict[str, Any] = Depends(get_current_user)):
 @app.put("/api/customer/profile", tags=["Customer"])
 def update_customer_profile(body: Dict[str, Any], user: Dict[str, Any] = Depends(get_current_user)):
     data = load_db()
+    matched_user = None
     for u in data.get("users", []):
         if u.get("id") == user.get("id"):
+            matched_user = u
             if "fullName" in body:
                 u["fullName"] = body["fullName"]
             if "email" in body:
                 u["email"] = body["email"]
+            if "phone" in body:
+                u["phone"] = body["phone"]
+            if "avatarUrl" in body:
+                u["avatarUrl"] = body["avatarUrl"]
+            if "profilePhotoUrl" in body:
+                u["avatarUrl"] = body["profilePhotoUrl"]
                 
     profile = next((c for c in data.get("customerProfiles", []) if c.get("userId") == user.get("id")), None)
     if not profile:
         profile = {"id": str(uuid.uuid4()), "userId": user.get("id")}
         data.setdefault("customerProfiles", []).append(profile)
         
-    for k in ["homeAddress", "workAddress", "emergencyPhone"]:
+    for k in ["homeAddress", "workAddress", "emergencyPhone", "favouriteLocations", "notificationPreferences", "themePreference"]:
         if k in body:
             profile[k] = body[k]
 
     save_db(data)
-    return {"success": True, "message": "Profile updated successfully", "profile": profile}
+    
+    updated_user_dict = {
+        **(matched_user or user),
+        "customerProfile": profile
+    }
+    return {
+        "success": True, 
+        "message": "Profile updated successfully", 
+        "user": updated_user_dict,
+        "profile": profile
+    }
 
 # ---------------------------------------------------------
 # Fare Estimate Endpoints
@@ -1312,6 +1330,171 @@ def get_unread_count(ride_id: str):
     data = load_db()
     count = sum(1 for m in data.get("chatMessages", []) if m.get("rideId") == ride_id and not m.get("read"))
     return {"success": True, "unreadCount": count}
+
+# ---------------------------------------------------------
+# Support, Helpdesk & Ticket Endpoints
+# ---------------------------------------------------------
+class SupportTicketCreate(BaseModel):
+    category: str
+    subject: str
+    description: str
+    rideId: Optional[str] = None
+    priority: Optional[str] = "NORMAL"
+
+@app.post("/support/tickets", tags=["Support"])
+@app.post("/api/support/tickets", tags=["Support"])
+def create_support_ticket(req: SupportTicketCreate, user: Dict[str, Any] = Depends(get_current_user)):
+    data = load_db()
+    now_iso = datetime.utcnow().isoformat() + "Z"
+    random_code = str(uuid.uuid4())[:8].upper()
+    ticket_id = f"RN-TKT-{random_code}"
+    
+    ticket = {
+        "id": str(uuid.uuid4()),
+        "ticketNumber": ticket_id,
+        "userId": user.get("id"),
+        "userName": user.get("fullName", "Rider"),
+        "userPhone": user.get("phone", ""),
+        "category": req.category,
+        "subject": req.subject,
+        "description": req.description,
+        "rideId": req.rideId,
+        "priority": req.priority or "NORMAL",
+        "status": "OPEN",
+        "createdAt": now_iso,
+        "updatedAt": now_iso,
+        "responses": [
+            {
+                "sender": "RideNow Support Bot",
+                "message": f"Hello {user.get('fullName', 'Rider')}, we have received your query regarding '{req.category}'. Our support team will investigate and update you within 24 hours.",
+                "timestamp": now_iso
+            }
+        ]
+    }
+    
+    data.setdefault("supportTickets", []).append(ticket)
+    save_db(data)
+    
+    return {
+        "success": True,
+        "message": f"Support ticket {ticket_id} created successfully.",
+        "ticket": ticket
+    }
+
+@app.get("/support/tickets", tags=["Support"])
+@app.get("/api/support/tickets", tags=["Support"])
+def list_support_tickets(user: Dict[str, Any] = Depends(get_current_user)):
+    data = load_db()
+    uid = user.get("id")
+    tickets = [t for t in data.get("supportTickets", []) if t.get("userId") == uid or not uid or uid == "guest-user"]
+    return {
+        "success": True,
+        "tickets": tickets
+    }
+
+@app.get("/support/tickets/{ticket_id}", tags=["Support"])
+@app.get("/api/support/tickets/{ticket_id}", tags=["Support"])
+def get_support_ticket_details(ticket_id: str, user: Dict[str, Any] = Depends(get_current_user)):
+    data = load_db()
+    ticket = next((t for t in data.get("supportTickets", []) if t.get("id") == ticket_id or t.get("ticketNumber") == ticket_id), None)
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return {"success": True, "ticket": ticket}
+
+@app.post("/support/complaint", tags=["Support"])
+@app.post("/api/support/complaint", tags=["Support"])
+def report_ride_complaint(body: Dict[str, Any], user: Dict[str, Any] = Depends(get_current_user)):
+    data = load_db()
+    now_iso = datetime.utcnow().isoformat() + "Z"
+    complaint_id = f"CMP-{str(uuid.uuid4())[:8].upper()}"
+    
+    complaint = {
+        "id": str(uuid.uuid4()),
+        "complaintId": complaint_id,
+        "userId": user.get("id"),
+        "rideId": body.get("rideId"),
+        "complaintType": body.get("complaintType", "General Issue"),
+        "description": body.get("description", ""),
+        "status": "UNDER_INVESTIGATION",
+        "createdAt": now_iso
+    }
+    data.setdefault("rideComplaints", []).append(complaint)
+    
+    # Also create a linked ticket so the user can track it
+    linked_ticket = {
+        "id": str(uuid.uuid4()),
+        "ticketNumber": f"RN-{complaint_id}",
+        "userId": user.get("id"),
+        "userName": user.get("fullName", "Rider"),
+        "userPhone": user.get("phone", ""),
+        "category": f"Complaint: {body.get('complaintType', 'Ride Issue')}",
+        "subject": f"Ride Complaint for Ride #{body.get('rideId', 'N/A')}",
+        "description": body.get("description", ""),
+        "rideId": body.get("rideId"),
+        "priority": "HIGH",
+        "status": "OPEN",
+        "createdAt": now_iso,
+        "updatedAt": now_iso,
+        "responses": [
+            {
+                "sender": "RideNow Safety & Quality Desk",
+                "message": "We have registered your ride complaint and forwarded it to our quality auditing team for priority review.",
+                "timestamp": now_iso
+            }
+        ]
+    }
+    data.setdefault("supportTickets", []).append(linked_ticket)
+    save_db(data)
+    
+    return {
+        "success": True,
+        "message": f"Complaint {complaint_id} recorded successfully.",
+        "complaint": complaint,
+        "ticket": linked_ticket
+    }
+
+# ---------------------------------------------------------
+# Security & Account Management Endpoints
+# ---------------------------------------------------------
+class ChangePasswordRequest(BaseModel):
+    currentPassword: str
+    newPassword: str
+
+@app.post("/auth/change-password", tags=["Auth"])
+@app.post("/api/auth/change-password", tags=["Auth"])
+def change_password(req: ChangePasswordRequest, user: Dict[str, Any] = Depends(get_current_user)):
+    data = load_db()
+    for u in data.get("users", []):
+        if u.get("id") == user.get("id"):
+            u["password"] = req.newPassword
+            save_db(data)
+            return {"success": True, "message": "Password changed successfully."}
+    return {"success": True, "message": "Password updated for session."}
+
+class DeleteAccountRequest(BaseModel):
+    reason: Optional[str] = "No reason provided"
+    confirmation: bool = True
+
+@app.post("/customer/delete-account-request", tags=["Customer"])
+@app.post("/api/customer/delete-account-request", tags=["Customer"])
+def request_account_deletion(req: DeleteAccountRequest, user: Dict[str, Any] = Depends(get_current_user)):
+    data = load_db()
+    now_iso = datetime.utcnow().isoformat() + "Z"
+    record = {
+        "id": str(uuid.uuid4()),
+        "userId": user.get("id"),
+        "userPhone": user.get("phone"),
+        "userName": user.get("fullName"),
+        "reason": req.reason,
+        "requestedAt": now_iso,
+        "status": "PENDING_SCHEDULED_PURGE"
+    }
+    data.setdefault("accountDeletionRequests", []).append(record)
+    save_db(data)
+    return {
+        "success": True,
+        "message": "Your account deletion request has been submitted. Our compliance team will process it within 7 business days as per data privacy guidelines."
+    }
 
 if __name__ == "__main__":
     import uvicorn

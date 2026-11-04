@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/storage/storage_service.dart';
+import '../../features/auth/providers/auth_provider.dart';
 
 class AppTheme {
   // Brand Colors - Cyber Black & Yellow Palette
@@ -13,6 +16,95 @@ class AppTheme {
   static const Color textMuted = Color(0xFF9CA3AF);
   static const Color successGreen = Color(0xFF10B981);
   static const Color errorRed = Color(0xFFEF4444);
+
+  // Light Palette
+  static const Color backgroundLight = Color(0xFFF8FAFC);
+  static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color cardLight = Color(0xFFFFFFFF);
+  static const Color textDark = Color(0xFF0F172A);
+  static const Color textLightMuted = Color(0xFF64748B);
+  static const Color borderLightSubtle = Color(0xFFE2E8F0);
+
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: backgroundLight,
+      colorScheme: const ColorScheme.light(
+        primary: primaryYellow,
+        onPrimary: Colors.black,
+        secondary: secondaryAmber,
+        onSecondary: Colors.black,
+        surface: surfaceLight,
+        onSurface: textDark,
+        error: errorRed,
+        onError: Colors.white,
+      ),
+      fontFamily: 'Roboto',
+      appBarTheme: const AppBarTheme(
+        backgroundColor: surfaceLight,
+        elevation: 0,
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          color: textDark,
+          fontSize: 18,
+          fontWeight: FontWeight.w900,
+          letterSpacing: -0.3,
+        ),
+        iconTheme: IconThemeData(color: Colors.black87),
+      ),
+      cardTheme: CardThemeData(
+        color: cardLight,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: borderLightSubtle, width: 1),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryYellow,
+          foregroundColor: Colors.black,
+          elevation: 2,
+          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 18,
+        ),
+        hintStyle: const TextStyle(color: textLightMuted, fontSize: 13),
+        labelStyle: const TextStyle(color: textLightMuted, fontSize: 13),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: borderLightSubtle),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: borderLightSubtle),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: secondaryAmber, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: errorRed),
+        ),
+      ),
+    );
+  }
 
   static ThemeData get darkTheme {
     return ThemeData(
@@ -95,3 +187,33 @@ class AppTheme {
     );
   }
 }
+
+// ThemeMode StateNotifier
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  final StorageService _storage;
+
+  ThemeModeNotifier(this._storage) : super(_loadInitialTheme(_storage));
+
+  static ThemeMode _loadInitialTheme(StorageService storage) {
+    final saved = storage.getThemeMode();
+    if (saved == 'LIGHT') return ThemeMode.light;
+    if (saved == 'DARK') return ThemeMode.dark;
+    return ThemeMode.system;
+  }
+
+  void setThemeMode(ThemeMode mode) {
+    state = mode;
+    final modeStr = mode == ThemeMode.light
+        ? 'LIGHT'
+        : mode == ThemeMode.dark
+            ? 'DARK'
+            : 'SYSTEM';
+    _storage.saveThemeMode(modeStr);
+  }
+}
+
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+  final storage = ref.watch(storageServiceProvider);
+  return ThemeModeNotifier(storage);
+});
