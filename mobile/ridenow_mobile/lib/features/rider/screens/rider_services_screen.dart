@@ -50,8 +50,6 @@ class RiderServicesScreen extends ConsumerWidget {
                       title: 'Bike Saver',
                       icon: Icons.two_wheeler,
                       iconColor: const Color(0xFFF59E0B),
-                      badgeText: '100%',
-                      badgeIcon: Icons.local_offer,
                       height: 125,
                       onTap: () {
                         ref
@@ -67,8 +65,6 @@ class RiderServicesScreen extends ConsumerWidget {
                       title: 'Auto',
                       icon: Icons.electric_rickshaw,
                       iconColor: const Color(0xFF10B981),
-                      badgeText: '100%',
-                      badgeIcon: Icons.local_offer,
                       height: 125,
                       onTap: () {
                         ref
@@ -90,8 +86,6 @@ class RiderServicesScreen extends ConsumerWidget {
                       title: 'Trip',
                       icon: Icons.directions_car_filled,
                       iconColor: const Color(0xFF3B82F6),
-                      badgeText: '100%',
-                      badgeIcon: Icons.local_offer,
                       height: 110,
                       onTap: () {
                         ref

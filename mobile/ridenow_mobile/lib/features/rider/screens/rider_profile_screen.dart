@@ -757,7 +757,7 @@ class _RiderProfileScreenState extends ConsumerState<RiderProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('100% OFF First Ride',
+                        Text('Special Offer on First Ride',
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         Text('Valid up to ₹100 on Bike Saver',
                             style: TextStyle(fontSize: 12, color: Colors.black54)),

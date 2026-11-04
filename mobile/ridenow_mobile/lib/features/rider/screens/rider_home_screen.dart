@@ -311,7 +311,8 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          bookingState.pickupAddress.isNotEmpty
+                          bookingState.pickupAddress.isNotEmpty &&
+                                  !bookingState.pickupAddress.contains('Rajwada')
                               ? bookingState.pickupAddress
                               : 'Current location',
                           style: const TextStyle(
@@ -466,24 +467,18 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                               name: 'Bike Saver',
                               icon: Icons.two_wheeler,
                               iconColor: const Color(0xFFF59E0B),
-                              badgeText: '100%',
-                              badgeIcon: Icons.local_offer,
                               onTap: () => _selectService('BIKE', 'Bike Saver'),
                             ),
                             _buildCircularService(
                               name: 'Auto',
                               icon: Icons.electric_rickshaw,
                               iconColor: const Color(0xFF10B981),
-                              badgeText: '100%',
-                              badgeIcon: Icons.local_offer,
                               onTap: () => _selectService('AUTO', 'Auto'),
                             ),
                             _buildCircularService(
                               name: 'Trip',
                               icon: Icons.directions_car_filled,
                               iconColor: const Color(0xFF3B82F6),
-                              badgeText: '100%',
-                              badgeIcon: Icons.local_offer,
                               onTap: () => _selectService('MINI', 'Trip'),
                             ),
                             _buildCircularService(
@@ -557,7 +552,7 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text(
-                                  'Enjoy 100% off Auto',
+                                  'Affordable Auto Rides',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w900,
@@ -581,7 +576,7 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                             ),
                             const SizedBox(height: 6),
                             const Text(
-                              'Save big on city rides in Indore with zero platform commission.',
+                              'Save big on everyday city rides with zero platform commission.',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Color(0xFF64748B),
@@ -632,7 +627,7 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: const [
                                       Text(
-                                        '100% off Auto',
+                                        'Best Fare Guaranteed',
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
@@ -1102,12 +1097,12 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                         ),
                         tooltip: 'Current Location',
                         onPressed: () {
-                          _pickupSearchCtrl.text = 'Rajwada Palace, Indore';
+                          _pickupSearchCtrl.text = 'Current location';
                           ref
                               .read(riderBookingProvider.notifier)
                               .setPickup(
                                 const LatLng(22.7196, 75.8577),
-                                'Rajwada Palace, Indore',
+                                'Current location',
                               );
                         },
                       ),

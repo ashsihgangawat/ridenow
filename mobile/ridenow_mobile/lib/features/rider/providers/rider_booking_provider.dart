@@ -24,8 +24,8 @@ class RiderBookingState {
 
   RiderBookingState({
     this.isLoading = false,
-    this.pickupPoint = const LatLng(22.7196, 75.8577), // Rajwada Palace, Indore
-    this.pickupAddress = 'Rajwada Palace, Indore',
+    this.pickupPoint = const LatLng(22.7196, 75.8577),
+    this.pickupAddress = 'Current location',
     this.dropPoint,
     this.dropAddress = '',
     this.route,
