@@ -49,8 +49,10 @@ class _RiderHistoryScreenState extends ConsumerState<RiderHistoryScreen> {
               )
             : null,
       ),
-      body: _loading
-          ? const Center(
+      body: SafeArea(
+        bottom: true,
+        child: _loading
+            ? const Center(
               child: CircularProgressIndicator(color: AppTheme.primaryYellow),
             )
           : _rides.isEmpty
@@ -206,6 +208,7 @@ class _RiderHistoryScreenState extends ConsumerState<RiderHistoryScreen> {
                 );
               },
             ),
+      ),
     );
   }
 }

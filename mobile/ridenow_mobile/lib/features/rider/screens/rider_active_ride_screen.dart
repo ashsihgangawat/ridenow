@@ -387,7 +387,10 @@ class _RiderActiveRideScreenState extends ConsumerState<RiderActiveRideScreen> {
           // 3. Bottom Active Ride Telemetry Card
           Align(
             alignment: Alignment.bottomCenter,
-            child: Container(
+            child: SafeArea(
+              top: false,
+              bottom: true,
+              child: Container(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               decoration: BoxDecoration(
                 color: const Color(0xFF0F172A).withOpacity(0.97),
@@ -689,6 +692,7 @@ class _RiderActiveRideScreenState extends ConsumerState<RiderActiveRideScreen> {
                   ],
                 ],
               ),
+            ),
             ),
           ),
         ],

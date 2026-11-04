@@ -58,9 +58,15 @@ class _RiderMainShellScreenState extends ConsumerState<RiderMainShellScreen> {
           const RiderProfileScreen(),
         ],
       ),
-      bottomNavigationBar: FloatingBottomNavBar(
-        currentIndex: _currentTabIndex,
-        onTap: _onTabTapped,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        left: false,
+        right: false,
+        bottom: true,
+        child: FloatingBottomNavBar(
+          currentIndex: _currentTabIndex,
+          onTap: _onTabTapped,
+        ),
       ),
     );
   }

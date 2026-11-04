@@ -1917,8 +1917,10 @@ For privacy questions, reach us at privacy@ridenow.in.''',
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+      body: SafeArea(
+        bottom: true,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
         child: Column(
           children: [
             // ----------------------------------------------------
@@ -2205,6 +2207,7 @@ For privacy questions, reach us at privacy@ridenow.in.''',
               ),
             ),
           ],
+        ),
         ),
       ),
     );

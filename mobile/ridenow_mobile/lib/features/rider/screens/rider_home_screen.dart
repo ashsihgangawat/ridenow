@@ -255,7 +255,7 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        bottom: false,
+        bottom: true,
         child: Stack(
           children: [
             // Main Scrollable Content (Matching User Image 3)
@@ -2153,7 +2153,10 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
   }
 
   Widget _buildBookRideButton(String buttonTitle) {
-    return Padding(
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: Padding(
       padding: EdgeInsets.fromLTRB(
         16,
         6,
@@ -2194,6 +2197,7 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                   ),
                 ),
         ),
+      ),
       ),
     );
   }

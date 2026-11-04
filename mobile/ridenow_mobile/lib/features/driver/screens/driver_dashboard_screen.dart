@@ -388,7 +388,10 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
           // 4. BOTTOM ACTION CONTROL: ONLINE TOGGLE OR ACTIVE TRIP
           Align(
             alignment: Alignment.bottomCenter,
-            child: Container(
+            child: SafeArea(
+              top: false,
+              bottom: true,
+              child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: AppTheme.surfaceDark.withOpacity(0.98),
@@ -408,6 +411,7 @@ class _DriverDashboardScreenState extends ConsumerState<DriverDashboardScreen> {
               child: ride != null
                   ? _buildActiveTripPanel(ride, chatState)
                   : _buildOnlineTogglePanel(driverState),
+            ),
             ),
           ),
 
