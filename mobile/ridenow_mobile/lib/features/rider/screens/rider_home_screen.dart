@@ -2314,4 +2314,40 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
     final ampm = arrival.hour >= 12 ? 'pm' : 'am';
     return '$hour:$minute $ampm';
   }
+
+  Widget _buildSearchCategoryChip(
+    String cat,
+    String label,
+    IconData icon,
+    bool isSelected,
+  ) {
+    return ChoiceChip(
+      selected: isSelected,
+      onSelected: (_) {
+        ref.read(riderBookingProvider.notifier).selectCategory(cat);
+      },
+      avatar: Icon(
+        icon,
+        size: 16,
+        color: isSelected ? Colors.black : Colors.grey[700],
+      ),
+      label: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+          color: isSelected ? Colors.black : Colors.black87,
+          fontSize: 12,
+        ),
+      ),
+      selectedColor: const Color(0xFFFFC727),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? const Color(0xFFFFC727) : const Color(0xFFCBD5E1),
+          width: isSelected ? 1.5 : 1,
+        ),
+      ),
+    );
+  }
 }
