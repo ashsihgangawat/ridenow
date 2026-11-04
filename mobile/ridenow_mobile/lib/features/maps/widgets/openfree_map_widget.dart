@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../app/config/environment.dart';
-import '../../../app/theme/app_theme.dart';
 
 class OpenFreeMapWidget extends StatefulWidget {
   final LatLng? pickupPoint;

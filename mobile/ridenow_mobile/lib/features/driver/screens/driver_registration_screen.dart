@@ -22,7 +22,6 @@ class _DriverRegistrationScreenState
   final _phoneCtrl = TextEditingController(text: '+919877665544');
   final _otpCtrl = TextEditingController(text: '123456');
   bool _otpSent = true;
-  bool _isVerifyingOtp = false;
 
   // Step 2: Personal Info
   final _nameCtrl = TextEditingController(text: 'Rameshwar Yadav');

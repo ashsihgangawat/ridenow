@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../storage/storage_service.dart';
 import '../../app/config/environment.dart';
 
@@ -10,8 +11,9 @@ class ApiClient {
     dio = Dio(
       BaseOptions(
         baseUrl: EnvironmentConfig.baseUrl,
-        connectTimeout: const Duration(seconds: 15),
-        receiveTimeout: const Duration(seconds: 15),
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -19,10 +21,18 @@ class ApiClient {
       ),
     );
 
-    // Request/Response Interceptor for Auth & Logging
+    // Request/Response Interceptor for Auth, Path Normalization & Logging
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
+          // Normalize endpoint paths for deployed FastAPI backend
+          // (FastAPI backend routes are mounted at /driver/ and /admin/)
+          if (options.path.startsWith('/api/driver/')) {
+            options.path = options.path.replaceFirst('/api/driver/', '/driver/');
+          } else if (options.path.startsWith('/api/admin/')) {
+            options.path = options.path.replaceFirst('/api/admin/', '/admin/');
+          }
+
           // Detect portal from path or active storage portal
           final activePortal = storage.getActivePortal();
           String? token;
@@ -42,9 +52,35 @@ class ApiClient {
             options.headers['Authorization'] = 'Bearer $token';
           }
 
+          if (kDebugMode) {
+            debugPrint('[API Request] ${options.method} ${options.uri}');
+          }
+
           return handler.next(options);
         },
+        onResponse: (response, handler) {
+          // Harmonize FastAPI {"detail": "..."} to {"message": "..."}
+          if (response.data is Map<String, dynamic>) {
+            final map = response.data as Map<String, dynamic>;
+            if (map['detail'] != null && map['message'] == null) {
+              map['message'] = map['detail'].toString();
+            }
+          }
+          return handler.next(response);
+        },
         onError: (DioException error, handler) {
+          // Harmonize FastAPI error {"detail": "..."} to {"message": "..."}
+          if (error.response?.data is Map<String, dynamic>) {
+            final map = error.response!.data as Map<String, dynamic>;
+            if (map['detail'] != null && map['message'] == null) {
+              map['message'] = map['detail'].toString();
+            }
+          }
+          if (kDebugMode) {
+            debugPrint(
+              '[API Error] ${error.requestOptions.method} ${error.requestOptions.uri} -> ${error.response?.statusCode}: ${error.message}',
+            );
+          }
           return handler.next(error);
         },
       ),
@@ -92,4 +128,3 @@ class ApiClient {
     );
   }
 }
-

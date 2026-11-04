@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:latlong2/latlong.dart';
-import '../../../app/theme/app_theme.dart';
-import '../../../app/config/environment.dart';
 import '../../../core/widgets/ridenow_logo.dart';
-import '../../auth/providers/auth_provider.dart';
 import '../providers/rider_booking_provider.dart';
 import '../../maps/widgets/openfree_map_widget.dart';
 import '../../maps/services/photon_geocoding_service.dart';

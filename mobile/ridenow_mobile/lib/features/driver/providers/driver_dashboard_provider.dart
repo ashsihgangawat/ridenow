@@ -355,7 +355,7 @@ class DriverDashboardNotifier extends StateNotifier<DriverDashboardState> {
         'lat': newLocation.latitude,
         'lng': newLocation.longitude,
       },
-    ).catchError((_) => null);
+    ).then((_) {}).catchError((_) {});
   }
 
   /// Start simulated vehicle driving along a polyline road route

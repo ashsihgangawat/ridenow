@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_endpoints.dart';
+import '../../auth/models/user_model.dart';
 import '../../auth/providers/auth_provider.dart';
 
 // Mandatory 7 Verification Documents
@@ -269,7 +270,11 @@ class DriverVerificationNotifier
 
       if (res.data['success'] == true) {
         final token = res.data['token'];
-        if (token != null) {
+        final userData = res.data['user'];
+        if (token != null && userData != null && userData is Map<String, dynamic>) {
+          final user = UserModel.fromJson(userData);
+          await _ref.read(authProvider.notifier).setDriverSession(token: token, user: user);
+        } else if (token != null) {
           await _ref.read(authProvider.notifier).driverLogin(phone, 'Password@123');
         }
         await fetchVerificationStatus();

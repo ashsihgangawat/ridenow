@@ -1,21 +1,15 @@
-import 'package:flutter/foundation.dart';
-
 class EnvironmentConfig {
   static const String appName = 'RideNow';
   static const String appVersion = '1.0.0';
 
-  // Base API configuration
-  // On Android physical or emulator:
-  // Android Emulator loopback is 10.0.2.2.
-  // On Desktop/Web: 127.0.0.1:5050
-  // LAN IP for real devices: 192.168.1.61:5050
+  // Base API configuration (Render Deployed Production Backend)
+  static const String defaultBaseUrl = 'https://ridenow-bx6n.onrender.com';
+
   static String get baseUrl {
-    if (kIsWeb) return 'http://127.0.0.1:5050';
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      // 10.0.2.2 accesses host localhost from Android emulator
-      return 'http://10.0.2.2:5050';
-    }
-    return 'http://127.0.0.1:5050';
+    return const String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: defaultBaseUrl,
+    );
   }
 
   static String get socketUrl => baseUrl;
