@@ -201,7 +201,7 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
             .setPickup(resolvedPickup.point, cleanPickup);
       }
 
-      // 2. Resolve Destination
+      // 2. Resolve Destination & Open Ride Selection Sheet
       final resolvedDrop = await _geocoding.resolveManualLocation(
         cleanDest,
         isDrop: true,
@@ -211,37 +211,14 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
           .read(riderBookingProvider.notifier)
           .setDestination(resolvedDrop.point, cleanDest);
 
-      // 3. Immediately Book Ride via API
-      final ok = await ref.read(riderBookingProvider.notifier).bookRide();
-
       if (mounted) {
-        setState(() => _isBooking = false);
-        if (ok) {
-          final ride = ref.read(riderBookingProvider).currentRide;
-          setState(() {
-            _isSearchExpanded = false;
-            _searchResults = [];
-          });
-          _pickupFocus.unfocus();
-          _destFocus.unfocus();
-
-          if (ride != null) {
-            context.push('/rider/ride/${ride.id}');
-          }
-        } else {
-          final errorMsg = ref.read(riderBookingProvider).error;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                errorMsg != null && errorMsg.isNotEmpty
-                    ? 'Booking failed: $errorMsg'
-                    : 'Ride booking failed. Please check your backend connection.',
-              ),
-              backgroundColor: Colors.red[700],
-              duration: const Duration(seconds: 4),
-            ),
-          );
-        }
+        setState(() {
+          _isBooking = false;
+          _isSearchExpanded = false;
+          _searchResults = [];
+        });
+        _pickupFocus.unfocus();
+        _destFocus.unfocus();
       }
     } catch (e) {
       if (mounted) {
@@ -1345,24 +1322,7 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
           ],
           const SizedBox(height: 16),
 
-          // Category Selector Chips
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _buildSearchCategoryChip('BIKE', 'Bike (₹35)', Icons.two_wheeler, ref.watch(riderBookingProvider).selectedCategory == 'BIKE'),
-                const SizedBox(width: 8),
-                _buildSearchCategoryChip('AUTO', 'Auto (₹45)', Icons.electric_rickshaw, ref.watch(riderBookingProvider).selectedCategory == 'AUTO'),
-                const SizedBox(width: 8),
-                _buildSearchCategoryChip('MINI', 'Cab (₹70)', Icons.directions_car, ref.watch(riderBookingProvider).selectedCategory == 'MINI'),
-                const SizedBox(width: 8),
-                _buildSearchCategoryChip('SEDAN', 'Sedan (₹100)', Icons.directions_car_filled, ref.watch(riderBookingProvider).selectedCategory == 'SEDAN'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Book Ride Yellow Button
+          // Find Rides Yellow Button
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -1373,7 +1333,7 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                 foregroundColor: Colors.black,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
               child: _isBooking
@@ -1385,9 +1345,9 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                         strokeWidth: 2.5,
                       ),
                     )
-                  : Text(
-                      'Book ${ref.watch(riderBookingProvider).selectedCategory} Ride',
-                      style: const TextStyle(
+                  : const Text(
+                      'Find Rides',
+                      style: TextStyle(
                         color: Colors.black,
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
