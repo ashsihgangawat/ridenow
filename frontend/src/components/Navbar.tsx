@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { fetchJson } from '../services/api';
 import { Car, Globe, User as UserIcon, Shield, LogOut, Phone, ShieldCheck, Cpu, Sparkles } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -38,12 +39,10 @@ export const Navbar: React.FC = () => {
     setLoginError('');
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/auth/send-otp', {
+      const data = await fetchJson('/api/auth/send-otp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, role })
       });
-      const data = await res.json();
       if (data.success) {
         setOtpSent(true);
         if (data.demoOtp) setOtp(data.demoOtp);

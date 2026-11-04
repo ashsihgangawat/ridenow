@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { fetchJson } from '../services/api';
 
 export interface User {
   id: string;
@@ -228,10 +229,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      const res = await fetch('/api/auth/me', {
+      const data = await fetchJson('/api/auth/me', {
         headers: { Authorization: `Bearer ${tokenToUse}` }
       });
-      const data = await res.json();
       if (data.success && data.user) {
         if (targetPortal === 'ADMIN') {
           setAdminUser(data.user);
@@ -275,12 +275,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // --- RIDER ACTIONS ---
   const riderSignup = async (payload: { name: string; email?: string; phone: string; password: string }) => {
-    const res = await fetch('/api/auth/rider/signup', {
+    const data = await fetchJson('/api/auth/rider/signup', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const data = await res.json();
     if (data.success && data.token) {
       localStorage.setItem(RIDER_TOKEN_KEY, data.token);
       localStorage.setItem(RIDER_USER_KEY, JSON.stringify(data.user));
@@ -293,12 +291,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const riderLogin = async (payload: { identifier: string; password: string }) => {
-    const res = await fetch('/api/auth/rider/login', {
+    const data = await fetchJson('/api/auth/rider/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const data = await res.json();
     if (data.success && data.token) {
       localStorage.setItem(RIDER_TOKEN_KEY, data.token);
       localStorage.setItem(RIDER_USER_KEY, JSON.stringify(data.user));
@@ -313,7 +309,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const riderLogout = async () => {
     if (riderToken) {
       try {
-        await fetch('/api/auth/logout', {
+        await fetchJson('/api/auth/logout', {
           method: 'POST',
           headers: { Authorization: `Bearer ${riderToken}` }
         });
@@ -339,12 +335,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     model?: string;
     registrationNumber?: string;
   }) => {
-    const res = await fetch('/api/auth/driver/signup', {
+    const data = await fetchJson('/api/auth/driver/signup', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const data = await res.json();
     if (data.success && data.token) {
       localStorage.setItem(DRIVER_TOKEN_KEY, data.token);
       localStorage.setItem(DRIVER_USER_KEY, JSON.stringify(data.user));
@@ -357,12 +351,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const driverLogin = async (payload: { identifier: string; password: string }) => {
-    const res = await fetch('/api/auth/driver/login', {
+    const data = await fetchJson('/api/auth/driver/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const data = await res.json();
     if (data.success && data.token) {
       localStorage.setItem(DRIVER_TOKEN_KEY, data.token);
       localStorage.setItem(DRIVER_USER_KEY, JSON.stringify(data.user));
@@ -377,7 +369,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const driverLogout = async () => {
     if (driverToken) {
       try {
-        await fetch('/api/auth/logout', {
+        await fetchJson('/api/auth/logout', {
           method: 'POST',
           headers: { Authorization: `Bearer ${driverToken}` }
         });
@@ -394,12 +386,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // --- ADMIN ACTIONS ---
   const adminLogin = async (email: string, password: string) => {
-    const res = await fetch('/api/auth/admin/login', {
+    const data = await fetchJson('/api/auth/admin/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    const data = await res.json();
     if (data.success && data.token) {
       localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
       localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(data.user));
@@ -414,7 +404,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const adminLogout = async () => {
     if (adminToken) {
       try {
-        await fetch('/api/auth/logout', {
+        await fetchJson('/api/auth/logout', {
           method: 'POST',
           headers: { Authorization: `Bearer ${adminToken}` }
         });
@@ -439,12 +429,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Legacy OTP flow handler (retained for backward compatibility)
   const loginWithOtp = async (phone: string, otp: string, role = 'CUSTOMER', vehicleDetails?: any) => {
-    const res = await fetch('/api/auth/verify-otp', {
+    const data = await fetchJson('/api/auth/verify-otp', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone, otp, role, vehicleDetails })
     });
-    const data = await res.json();
     if (data.success && data.token) {
       if (role === 'DRIVER') {
         localStorage.setItem(DRIVER_TOKEN_KEY, data.token);
