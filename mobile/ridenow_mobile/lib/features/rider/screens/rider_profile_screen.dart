@@ -1409,19 +1409,7 @@ class _RiderProfileScreenState extends ConsumerState<RiderProfileScreen> {
             // ----------------------------------------------------
             // 3. Log Out Button
             // ----------------------------------------------------
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ListTile(
+            Material(color: Colors.white, borderRadius: BorderRadius.circular(16), elevation: 0, child: ListTile(
                 onTap: () => _confirmSignOut(context),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 leading: const Icon(

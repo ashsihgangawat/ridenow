@@ -41,7 +41,7 @@ class SocketService {
       });
 
       _socket!.onError((err) {
-        debugPrint('[Socket.IO] Error: $err');
+        // Optional WebSocket channel; REST API handles all live rides & tracking
       });
     } catch (e) {
       debugPrint('[Socket.IO] Connection exception: $e');

@@ -287,22 +287,33 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          bookingState.pickupAddress.isNotEmpty &&
-                                  !bookingState.pickupAddress.contains('Rajwada')
-                              ? bookingState.pickupAddress
-                              : 'Current location',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
+                        Flexible(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  bookingState.pickupAddress.isNotEmpty &&
+                                          !bookingState.pickupAddress.contains('Rajwada')
+                                      ? bookingState.pickupAddress
+                                      : 'Current location',
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: Colors.black,
+                                size: 18,
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: Colors.black,
-                          size: 18,
                         ),
                         const Spacer(),
                         InkWell(
@@ -2047,14 +2058,18 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
                         children: [
                           Row(
                             children: [
-                              Text(
-                                _selectedPaymentMethod == 'CASH'
-                                    ? 'Cash on Drop'
-                                    : 'RideNow Wallet',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.black,
+                              Flexible(
+                                child: Text(
+                                  _selectedPaymentMethod == 'CASH'
+                                      ? 'Cash on Drop'
+                                      : 'RideNow Wallet',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.black,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               const Icon(
