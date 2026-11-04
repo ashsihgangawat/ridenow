@@ -133,6 +133,10 @@ class RiderBookingNotifier extends StateNotifier<RiderBookingState> {
     state = state.copyWith(selectedCategory: cat);
   }
 
+  void clearDestination() {
+    state = state.copyWith(clearDropPoint: true);
+  }
+
   Future<void> _calculateRouteAndFares() async {
     final drop = state.dropPoint;
     if (drop == null) return;

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -37,6 +38,8 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
   String _selectedMode = 'RIDES'; // 'RIDES' | 'PARCEL'
   bool _showBanner = true;
   bool _isBooking = false;
+  String _selectedRideOptionId = 'BIKE';
+  String _selectedPaymentMethod = 'CASH';
 
   @override
   void initState() {
@@ -266,6 +269,11 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final bookingState = ref.watch(riderBookingProvider);
+
+    // When destination is filled, present the Ride Selection Screen matching Rapido/Ola UI
+    if (bookingState.dropPoint != null) {
+      return _buildRideConfirmationScreen(bookingState);
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -1591,39 +1599,719 @@ class _RiderHomeScreenState extends ConsumerState<RiderHomeScreen> {
     );
   }
 
-  Widget _buildSearchCategoryChip(
-    String cat,
-    String label,
-    IconData icon,
-    bool isSelected,
-  ) {
-    return ChoiceChip(
-      selected: isSelected,
-      onSelected: (_) {
-        ref.read(riderBookingProvider.notifier).selectCategory(cat);
-      },
-      avatar: Icon(
-        icon,
-        size: 16,
-        color: isSelected ? Colors.black : Colors.grey[700],
-      ),
-      label: Text(
-        label,
-        style: TextStyle(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-          color: isSelected ? Colors.black : Colors.black87,
-          fontSize: 12,
-        ),
-      ),
-      selectedColor: const Color(0xFFFFC727),
+  // =========================================================
+  // RAPIDO / UBER STYLE RIDE SELECTION VIEW (WHEN DESTINATION FILLED)
+  // =========================================================
+  Widget _buildRideConfirmationScreen(RiderBookingState bookingState) {
+    return Scaffold(
       backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isSelected ? const Color(0xFFFFC727) : const Color(0xFFCBD5E1),
-          width: isSelected ? 1.5 : 1,
+      body: Stack(
+        children: [
+          // 1. Interactive Route Map
+          Positioned.fill(
+            child: OpenFreeMapWidget(
+              pickupPoint: bookingState.pickupPoint,
+              destinationPoint: bookingState.dropPoint,
+              driverPoint: bookingState.liveDriverLocation,
+              driverHeading: bookingState.driverHeading,
+              routePolyline: bookingState.route?.polylinePoints,
+              controlsBottomPadding: MediaQuery.of(context).size.height * 0.58,
+            ),
+          ),
+
+          // 2. Top Header Navigation (Back button & Add stop pill)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 16,
+            right: 16,
+            child: Row(
+              children: [
+                Material(
+                  elevation: 4,
+                  shape: const CircleBorder(),
+                  color: Colors.white,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () {
+                      ref.read(riderBookingProvider.notifier).clearDestination();
+                      _destSearchCtrl.clear();
+                      setState(() {
+                        _isSearchExpanded = false;
+                        _searchResults = [];
+                      });
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 20,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Material(
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(24),
+                  color: Colors.white,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(24),
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Multi-stop booking feature coming soon.'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.add_rounded, size: 18, color: Colors.black),
+                          SizedBox(width: 4),
+                          Text(
+                            'Add stop',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 3. Sliding Ride Selection Bottom Sheet (Matching user screenshot)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: _buildRideSelectionBottomSheet(bookingState),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRideSelectionBottomSheet(RiderBookingState bookingState) {
+    final dropTime = _getDropTimeEstimate(bookingState);
+
+    final rideOptions = [
+      {
+        'id': 'BIKE',
+        'category': 'BIKE',
+        'title': 'Bike',
+        'subtitle': 'Quick Bike rides • 4 min away • Drop $dropTime • 👤 1',
+        'price': _getOptionPrice('BIKE', bookingState),
+        'icon': Icons.two_wheeler_rounded,
+        'iconColor': const Color(0xFFF59E0B),
+        'hasDiscountBadge': false,
+        'hasPriorityBadge': false,
+        'hasStarBadge': false,
+        'isSurge': true,
+        'buttonText': 'Bike',
+      },
+      {
+        'id': 'AUTO',
+        'category': 'AUTO',
+        'title': 'Auto',
+        'subtitle': '4 min away • Drop $dropTime • 👤 3',
+        'price': _getOptionPrice('AUTO', bookingState),
+        'icon': Icons.electric_rickshaw_rounded,
+        'iconColor': const Color(0xFF10B981),
+        'hasDiscountBadge': false,
+        'hasPriorityBadge': false,
+        'hasStarBadge': false,
+        'isSurge': false,
+        'buttonText': 'Auto',
+      },
+      {
+        'id': 'AUTO_LITE',
+        'category': 'AUTO',
+        'title': 'Auto Lite',
+        'subtitle': 'Pocket friendly • 4 min away • Drop $dropTime • 👤 3',
+        'price': _getOptionPrice('AUTO', bookingState, multiplier: 0.88),
+        'icon': Icons.electric_rickshaw_rounded,
+        'iconColor': const Color(0xFF059669),
+        'hasDiscountBadge': true,
+        'hasPriorityBadge': false,
+        'hasStarBadge': false,
+        'isSurge': false,
+        'buttonText': 'Auto Lite',
+      },
+      {
+        'id': 'AUTO_PRIORITY',
+        'category': 'AUTO',
+        'title': 'Auto Priority',
+        'subtitle': 'Fastest pickup • 2 min away • Drop $dropTime • 👤 3',
+        'price': _getOptionPrice('AUTO', bookingState, multiplier: 1.10),
+        'icon': Icons.electric_rickshaw_rounded,
+        'iconColor': const Color(0xFF10B981),
+        'hasDiscountBadge': false,
+        'hasPriorityBadge': true,
+        'hasStarBadge': false,
+        'isSurge': false,
+        'buttonText': 'Auto Priority',
+      },
+      {
+        'id': 'MINI',
+        'category': 'MINI',
+        'title': 'Cab Economy',
+        'subtitle': 'Hatchback • 4 min away • Drop $dropTime • 👤 4',
+        'price': _getOptionPrice('MINI', bookingState),
+        'icon': Icons.directions_car_filled_rounded,
+        'iconColor': const Color(0xFF3B82F6),
+        'hasDiscountBadge': false,
+        'hasPriorityBadge': false,
+        'hasStarBadge': false,
+        'isSurge': false,
+        'buttonText': 'Cab Economy',
+      },
+      {
+        'id': 'SEDAN',
+        'category': 'SEDAN',
+        'title': 'Cab Premium',
+        'subtitle': 'Prime sedan • 4 min away • Drop $dropTime • 👤 4',
+        'price': _getOptionPrice('SEDAN', bookingState),
+        'icon': Icons.directions_car_rounded,
+        'iconColor': const Color(0xFF6366F1),
+        'hasDiscountBadge': false,
+        'hasPriorityBadge': false,
+        'hasStarBadge': true,
+        'isSurge': false,
+        'buttonText': 'Cab Premium',
+      },
+      {
+        'id': 'SUV',
+        'category': 'SUV',
+        'title': 'Spacious SUV',
+        'subtitle': 'Extra legroom & luggage • 👤 6',
+        'price': _getOptionPrice('SUV', bookingState),
+        'icon': Icons.airport_shuttle_rounded,
+        'iconColor': const Color(0xFF8B5CF6),
+        'hasDiscountBadge': false,
+        'hasPriorityBadge': false,
+        'hasStarBadge': false,
+        'isSurge': false,
+        'buttonText': 'XL SUV',
+      },
+    ];
+
+    final selectedOpt = rideOptions.firstWhere(
+      (o) => o['id'] == _selectedRideOptionId,
+      orElse: () => rideOptions.first,
+    );
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.58,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 18,
+            spreadRadius: 2,
+            offset: Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Drag Handle
+          Center(
+            child: Container(
+              width: 44,
+              height: 4,
+              margin: const EdgeInsets.only(top: 10, bottom: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+
+          // Scrollable Fleet List
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              itemCount: rideOptions.length,
+              itemBuilder: (context, index) {
+                final opt = rideOptions[index];
+                final isSelected = opt['id'] == _selectedRideOptionId;
+
+                return _buildRideOptionCard(
+                  id: opt['id'] as String,
+                  title: opt['title'] as String,
+                  subtitle: opt['subtitle'] as String,
+                  price: opt['price'] as int,
+                  icon: opt['icon'] as IconData,
+                  iconColor: opt['iconColor'] as Color,
+                  hasDiscountBadge: opt['hasDiscountBadge'] as bool,
+                  hasPriorityBadge: opt['hasPriorityBadge'] as bool,
+                  hasStarBadge: opt['hasStarBadge'] as bool,
+                  isSurge: opt['isSurge'] as bool,
+                  isSelected: isSelected,
+                  onTap: () {
+                    setState(() {
+                      _selectedRideOptionId = opt['id'] as String;
+                    });
+                    ref
+                        .read(riderBookingProvider.notifier)
+                        .selectCategory(opt['category'] as String);
+                  },
+                );
+              },
+            ),
+          ),
+
+          // Payment & Offers Row
+          _buildPaymentAndOffersRow(),
+
+          // Big Confirm Yellow Button
+          _buildBookRideButton(selectedOpt['buttonText'] as String),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRideOptionCard({
+    required String id,
+    required String title,
+    required String subtitle,
+    required int price,
+    required IconData icon,
+    required Color iconColor,
+    bool hasDiscountBadge = false,
+    bool hasPriorityBadge = false,
+    bool hasStarBadge = false,
+    bool isSurge = false,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : const Color(0xFFFBFBFB),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF1E3A8A) : const Color(0xFFF1F5F9),
+            width: isSelected ? 2.0 : 1.0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF1E3A8A).withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            // Left Vehicle Icon with Badges
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: iconColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      icon,
+                      size: 28,
+                      color: iconColor,
+                    ),
+                  ),
+                ),
+                if (hasDiscountBadge)
+                  Positioned(
+                    top: -4,
+                    left: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF059669),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.percent_rounded,
+                        size: 11,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                if (hasPriorityBadge)
+                  Positioned(
+                    top: -4,
+                    left: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFF59E0B),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.bolt_rounded,
+                        size: 12,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                if (hasStarBadge)
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEAB308),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.star_rounded,
+                        size: 11,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 14),
+
+            // Title & Subtitle Details
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+
+            // Fare Price
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isSurge)
+                  const Text(
+                    '↑ ',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                    ),
+                  ),
+                Text(
+                  '₹$price',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _buildPaymentAndOffersRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          // Left: Payment Method
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedPaymentMethod =
+                      _selectedPaymentMethod == 'CASH' ? 'ONLINE' : 'CASH';
+                });
+              },
+              borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        color: Colors.black,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.account_balance_wallet_rounded,
+                          color: Color(0xFFFFC727),
+                          size: 15,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                _selectedPaymentMethod == 'CASH'
+                                    ? 'Cash on Drop'
+                                    : 'RideNow Wallet',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.keyboard_arrow_right_rounded,
+                                size: 16,
+                                color: Colors.black54,
+                              ),
+                            ],
+                          ),
+                          Text(
+                            _selectedPaymentMethod == 'CASH'
+                                ? 'Pay directly to driver'
+                                : 'Low Balance: ₹0.0',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: _selectedPaymentMethod == 'CASH'
+                                  ? Colors.grey.shade600
+                                  : Colors.red.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Divider
+          Container(
+            height: 26,
+            width: 1,
+            color: Colors.grey.shade300,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+          ),
+
+          // Right: Offers
+          InkWell(
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Offer "FIRST50" auto-applied! Save ₹50 on this ride.'),
+                  backgroundColor: Color(0xFF059669),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              child: Row(
+                children: const [
+                  Icon(
+                    Icons.local_offer_rounded,
+                    color: Color(0xFF059669),
+                    size: 20,
+                  ),
+                  SizedBox(width: 6),
+                  Text(
+                    'Offers',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Icon(
+                    Icons.keyboard_arrow_right_rounded,
+                    size: 16,
+                    color: Colors.black54,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBookRideButton(String buttonTitle) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        6,
+        16,
+        MediaQuery.of(context).padding.bottom > 0
+            ? MediaQuery.of(context).padding.bottom + 4
+            : 16,
+      ),
+      child: SizedBox(
+        height: 52,
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: _isBooking ? null : _confirmRideBooking,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFFC727),
+            foregroundColor: Colors.black,
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(26),
+            ),
+          ),
+          child: _isBooking
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.black,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : Text(
+                  'Book $buttonTitle',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmRideBooking() async {
+    if (_isBooking) return;
+    setState(() => _isBooking = true);
+
+    try {
+      final ok = await ref.read(riderBookingProvider.notifier).bookRide();
+      if (mounted) {
+        setState(() => _isBooking = false);
+        if (ok) {
+          final ride = ref.read(riderBookingProvider).currentRide;
+          if (ride != null) {
+            context.push('/rider/ride/${ride.id}');
+          }
+        } else {
+          final errorMsg = ref.read(riderBookingProvider).error;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                errorMsg != null && errorMsg.isNotEmpty
+                    ? 'Booking failed: $errorMsg'
+                    : 'Ride booking failed. Please verify your connection.',
+              ),
+              backgroundColor: Colors.red[700],
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isBooking = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error booking ride: $e'),
+            backgroundColor: Colors.red[700],
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
+  int _getOptionPrice(
+    String cat,
+    RiderBookingState state, {
+    double multiplier = 1.0,
+  }) {
+    final distance = state.route?.distanceKm ?? 5.2;
+    if (state.fareEstimates.isNotEmpty) {
+      final est = state.fareEstimates.firstWhere(
+        (e) => (e['category'] as String?)?.toUpperCase() == cat.toUpperCase(),
+        orElse: () => {},
+      );
+      if (est['totalFare'] != null) {
+        final base = (est['totalFare'] as num).toDouble();
+        return math.max(25, (base * multiplier).round());
+      }
+    }
+
+    switch (cat.toUpperCase()) {
+      case 'BIKE':
+        return math.max(25, (20.0 + (distance * 8.0) + 2.0) * multiplier).round();
+      case 'AUTO':
+        return math.max(40, (30.0 + (distance * 12.0) + 3.0) * multiplier).round();
+      case 'MINI':
+        return math.max(70, (50.0 + (distance * 14.0) + 4.0) * multiplier).round();
+      case 'SEDAN':
+        return math.max(100, (75.0 + (distance * 17.0) + 5.0) * multiplier).round();
+      case 'SUV':
+        return math.max(140, (100.0 + (distance * 21.0) + 6.0) * multiplier).round();
+      default:
+        return math.max(50, (40.0 + (distance * 12.0)) * multiplier).round();
+    }
+  }
+
+  String _getDropTimeEstimate(RiderBookingState state) {
+    final durationMinutes = state.route?.durationMinutes ?? 18.0;
+    final arrival =
+        DateTime.now().add(Duration(minutes: durationMinutes.round() + 4));
+    final hour = arrival.hour > 12
+        ? arrival.hour - 12
+        : (arrival.hour == 0 ? 12 : arrival.hour);
+    final minute = arrival.minute.toString().padLeft(2, '0');
+    final ampm = arrival.hour >= 12 ? 'pm' : 'am';
+    return '$hour:$minute $ampm';
   }
 }
