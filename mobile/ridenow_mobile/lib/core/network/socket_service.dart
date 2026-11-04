@@ -18,8 +18,8 @@ class SocketService {
             .setTransports(['websocket', 'polling'])
             .enableAutoConnect()
             .enableReconnection()
-            .setReconnectionDelay(1000)
-            .setReconnectionAttempts(10)
+            .setReconnectionDelay(5000)
+            .setReconnectionAttempts(3)
             .build(),
       );
 
