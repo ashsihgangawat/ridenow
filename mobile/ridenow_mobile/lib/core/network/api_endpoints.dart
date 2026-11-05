@@ -13,6 +13,7 @@ class ApiEndpoints {
   static const String fareEstimate = '/api/fare/estimate';
   static const String bookRide = '/api/customer/rides/request';
   static const String rideHistory = '/api/customer/rides/history';
+  static const String nearbyDrivers = '/api/riders/nearby-drivers';
   static String rideDetails(String id) => '/api/customer/rides/$id';
   static String cancelRide(String id) => '/api/customer/rides/$id/cancel';
   static String rateRide(String id) => '/api/customer/rides/$id/rate';

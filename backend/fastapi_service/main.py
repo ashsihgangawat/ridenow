@@ -16,9 +16,11 @@ import math
 import random
 from datetime import datetime, date, timedelta
 from typing import Optional, List, Dict, Any, Union
-from fastapi import FastAPI, HTTPException, Depends, Header, status, Body
+from fastapi import FastAPI, HTTPException, Depends, Header, status, Body, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from database import get_engine, get_session, get_db, check_db_connection, DATABASE_URL
+from db_adapter import atomic_save_json, persist_ride_to_postgres, persist_driver_location_to_postgres
 
 app = FastAPI(
     title="RideNow Unified Backend API",
@@ -69,23 +71,12 @@ def load_db() -> Dict[str, Any]:
                 return json.load(f)
         except Exception as e:
             print(f"[DB] Error loading database: {e}")
-    return {
-        "users": [],
-        "driverProfiles": [],
-        "driverDocuments": [],
-        "customerProfiles": [],
-        "vehicles": [],
-        "rides": [],
-        "chatMessages": [],
-        "auditLogs": [],
-        "promoCodes": []
-    }
+            raise HTTPException(status_code=500, detail=f"Database read error: {e}")
+    raise FileNotFoundError(f"Database file not found at: {DB_FILE}")
 
 def save_db(data: Dict[str, Any]):
     try:
-        os.makedirs(os.path.dirname(DB_FILE), exist_ok=True)
-        with open(DB_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+        atomic_save_json(data, DB_FILE)
     except Exception as e:
         print(f"[DB] Error saving DB: {e}")
 
@@ -357,13 +348,21 @@ def calculate_fare(category: str, distance_km: float, duration_minutes: float = 
 @app.get("/health", tags=["Health"])
 @app.get("/api/health", tags=["Health"])
 def health_check():
+    db_status = check_db_connection()
     return {
-        "status": "healthy",
+        "status": "healthy" if db_status["connected"] or db_status["status"] == "UNCONFIGURED" else "degraded",
         "service": "RideNow Unified Backend API",
         "environment": os.environ.get("ENVIRONMENT", "production"),
+        "database": db_status["status"],
+        "databaseEngine": db_status["engine"],
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "version": "2.0.0"
+        "version": "2.1.0"
     }
+
+@app.get("/health/db", tags=["Health"])
+@app.get("/api/health/db", tags=["Health"])
+def health_database():
+    return check_db_connection()
 
 # ---------------------------------------------------------
 # Auth Endpoints (Dual Mounted: /api/auth/... & /auth/...)
@@ -714,6 +713,119 @@ def request_ride(req: RideRequestInput, user: Dict[str, Any] = Depends(get_curre
         "nearbyDriversCount": max(1, len(available_drivers))
     }
 
+# ---------------------------------------------------------
+# Nearby Drivers Endpoint for Live Map (GET /api/riders/nearby-drivers)
+# ---------------------------------------------------------
+def mask_vehicle_number(plate: str) -> str:
+    if not plate:
+        return "MP-09-RN-0000"
+    parts = plate.split("-")
+    if len(parts) >= 4:
+        return f"{parts[0]}-{parts[1]}-**-{parts[3]}"
+    elif len(plate) > 6:
+        return plate[:4] + "**" + plate[-4:]
+    return plate
+
+@app.get("/riders/nearby-drivers", tags=["Riders"])
+@app.get("/api/riders/nearby-drivers", tags=["Riders"])
+def get_nearby_drivers(
+    latitude: float = Query(..., description="Rider current GPS latitude"),
+    longitude: float = Query(..., description="Rider current GPS longitude"),
+    radius_km: float = Query(5.0, description="Search radius in kilometers, default 5km"),
+    vehicle_type: Optional[str] = Query(None, description="Optional vehicle filter: all, bike, auto, cab, mini, sedan, suv"),
+    limit: int = Query(30, description="Max drivers to return")
+):
+    if hasattr(radius_km, "default") or not isinstance(radius_km, (int, float)):
+        radius_km = 5.0
+    if hasattr(limit, "default") or not isinstance(limit, int):
+        limit = 30
+
+    if not (-90.0 <= latitude <= 90.0 and -180.0 <= longitude <= 180.0):
+        raise HTTPException(status_code=400, detail="Invalid GPS coordinates")
+    
+    radius_km = min(25.0, max(0.5, float(radius_km)))
+    data = load_db()
+
+    # 1. Identify active rides where a driver is busy
+    busy_driver_ids = {
+        r.get("driverId") for r in data.get("rides", [])
+        if r.get("status") in ["ACCEPTED", "ARRIVED", "IN_PROGRESS"] and r.get("driverId")
+    }
+
+    nearby_list = []
+    drivers = data.get("driverProfiles", [])
+    vehicles = data.get("vehicles", [])
+
+    if hasattr(vehicle_type, "default") or not isinstance(vehicle_type, str):
+        vehicle_type = None
+    norm_filter = (vehicle_type or "").strip().lower()
+
+    for d in drivers:
+        # Condition A: Must be online and approved
+        if not d.get("isOnline"):
+            continue
+        if d.get("verificationStatus") != "APPROVED":
+            continue
+        # Condition B: Must not be busy on an active ride
+        if d.get("id") in busy_driver_ids:
+            continue
+        
+        # Condition C: Valid GPS coordinates
+        d_lat = d.get("currentLat")
+        d_lng = d.get("currentLng")
+        if d_lat is None or d_lng is None:
+            continue
+        try:
+            d_lat = float(d_lat)
+            d_lng = float(d_lng)
+        except (ValueError, TypeError):
+            continue
+
+        # Condition D: Distance check via Haversine
+        dist = haversine_distance_km(latitude, longitude, d_lat, d_lng)
+        if dist > radius_km:
+            continue
+
+        # Condition E: Vehicle matching and filter
+        v = next((x for x in vehicles if x.get("driverId") == d.get("id")), None)
+        v_cat = (v.get("category") if v else "AUTO").upper()
+
+        if norm_filter and norm_filter != "all":
+            if norm_filter == "bike" and v_cat not in ["BIKE", "SCOOTER"]:
+                continue
+            elif norm_filter == "auto" and v_cat not in ["AUTO", "RICKSHAW"]:
+                continue
+            elif norm_filter in ["car", "cab"] and v_cat not in ["MINI", "SEDAN", "SUV", "CAB", "CAR", "PREMIUM"]:
+                continue
+            elif norm_filter not in ["bike", "auto", "car", "cab"] and v_cat != norm_filter.upper():
+                continue
+
+        plate = v.get("plateNumber") or v.get("vehicleNumber") or ""
+        masked_plate = mask_vehicle_number(plate)
+
+        nearby_list.append({
+            "driverId": d.get("id"),
+            "latitude": d_lat,
+            "longitude": d_lng,
+            "heading": float(d.get("heading") or 0.0),
+            "vehicleType": v_cat,
+            "vehicleModel": v.get("model", "Standard") if v else "Standard",
+            "vehicleNumber": masked_plate,
+            "availabilityStatus": "AVAILABLE",
+            "distanceKm": dist,
+            "lastLocationUpdate": d.get("lastLocationUpdate") or d.get("updatedAt") or "RECENT"
+        })
+
+    # Sort nearest first
+    nearby_list.sort(key=lambda x: x["distanceKm"])
+
+    return {
+        "success": True,
+        "count": len(nearby_list),
+        "radiusKm": radius_km,
+        "drivers": nearby_list[:limit]
+    }
+
 @app.get("/customer/rides/history", tags=["Rides"])
 @app.get("/api/customer/rides/history", tags=["Rides"])
 def get_ride_history(user: Dict[str, Any] = Depends(get_current_user)):
@@ -1061,8 +1173,10 @@ def toggle_online(req: DriverToggleOnline, user: Dict[str, Any] = Depends(get_cu
         raise HTTPException(status_code=404, detail="Driver profile not found")
         
     driver["isOnline"] = req.isOnline
+    driver["availabilityStatus"] = "AVAILABLE" if req.isOnline else "OFFLINE"
+    driver["lastLocationUpdate"] = datetime.utcnow().isoformat() + "Z"
     save_db(data)
-    return {"success": True, "isOnline": driver["isOnline"]}
+    return {"success": True, "isOnline": driver["isOnline"], "availabilityStatus": driver["availabilityStatus"]}
 
 @app.post("/driver/location", tags=["Driver"])
 @app.post("/api/driver/location", tags=["Driver"])
@@ -1072,7 +1186,9 @@ def update_driver_location(req: DriverLocationUpdate, user: Dict[str, Any] = Dep
     if driver:
         driver["currentLat"] = req.lat
         driver["currentLng"] = req.lng
-        driver["heading"] = req.heading
+        if req.heading is not None:
+            driver["heading"] = req.heading
+        driver["lastLocationUpdate"] = datetime.utcnow().isoformat() + "Z"
         save_db(data)
     return {"success": True, "message": "Location updated"}
 

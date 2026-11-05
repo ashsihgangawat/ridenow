@@ -40,9 +40,12 @@ class _RiderMainShellScreenState extends ConsumerState<RiderMainShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bookingState = ref.watch(riderBookingProvider);
+    final isBookingFlow = bookingState.dropPoint != null;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      extendBody: true, // Content flows behind the floating pill navbar
+      extendBody: !isBookingFlow, // Only extend when floating pill navbar is visible
       body: IndexedStack(
         index: _currentTabIndex,
         children: [
@@ -58,16 +61,18 @@ class _RiderMainShellScreenState extends ConsumerState<RiderMainShellScreen> {
           const RiderProfileScreen(),
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        left: false,
-        right: false,
-        bottom: true,
-        child: FloatingBottomNavBar(
-          currentIndex: _currentTabIndex,
-          onTap: _onTabTapped,
-        ),
-      ),
+      bottomNavigationBar: isBookingFlow
+          ? null
+          : SafeArea(
+              top: false,
+              left: false,
+              right: false,
+              bottom: true,
+              child: FloatingBottomNavBar(
+                currentIndex: _currentTabIndex,
+                onTap: _onTabTapped,
+              ),
+            ),
     );
   }
 }

@@ -662,10 +662,10 @@
       "updatedAt": "2026-11-03T10:57:36.904Z",
       "userId": "003ac4a8-48be-44a7-8721-f7c47a93ebc1",
       "licenseNumber": "DL-042018002931",
-      "verificationStatus": "DOCUMENTS_PENDING",
+      "verificationStatus": "APPROVED",
       "isOnline": true,
-      "currentLat": 22.7196,
-      "currentLng": 75.8577,
+      "currentLat": 22.7245,
+      "currentLng": 75.863,
       "rating": 5,
       "totalRatings": 7,
       "totalTrips": 247,
@@ -674,7 +674,8 @@
       "adminApproved": true,
       "lastLatitude": 22.7196,
       "lastLongitude": 75.8577,
-      "lastLocationUpdate": "2026-11-03T10:48:13.499Z"
+      "lastLocationUpdate": "2026-11-04T12:00:00Z",
+      "heading": 45.0
     },
     {
       "id": "7aade868-f8e5-463b-952b-d02ca433ee64",
@@ -684,12 +685,15 @@
       "licenseNumber": "HR-262019001188",
       "verificationStatus": "APPROVED",
       "isOnline": true,
-      "currentLat": 28.5355,
-      "currentLng": 77.391,
+      "currentLat": 22.715,
+      "currentLng": 75.852,
       "rating": 4.85,
       "totalRatings": 312,
       "totalTrips": 450,
-      "walletBalance": 4200
+      "walletBalance": 4200,
+      "adminApproved": true,
+      "heading": 180.0,
+      "lastLocationUpdate": "2026-11-04T12:00:00Z"
     },
     {
       "id": "c23b1edd-ac13-41ef-8e1f-9fd94dc16452",
@@ -698,14 +702,17 @@
       "userId": "9d92e943-723f-4d3f-83bb-4a35c2f49473",
       "licenseNumber": "UP-162021009944",
       "verificationStatus": "APPROVED",
-      "isOnline": false,
-      "currentLat": 28.57,
-      "currentLng": 77.32,
+      "isOnline": true,
+      "currentLat": 22.721,
+      "currentLng": 75.861,
       "rating": 5,
       "totalRatings": 0,
       "totalTrips": 0,
       "walletBalance": 0,
-      "rejectionReason": null
+      "rejectionReason": null,
+      "adminApproved": true,
+      "heading": 90.0,
+      "lastLocationUpdate": "2026-11-04T12:00:00Z"
     },
     {
       "id": "0369e9e6-c5ed-46d0-9e9f-23fb1dc44823",
@@ -715,12 +722,15 @@
       "licenseNumber": "DL-012015003344",
       "verificationStatus": "APPROVED",
       "isOnline": true,
-      "currentLat": 28.4595,
-      "currentLng": 77.0266,
+      "currentLat": 22.718,
+      "currentLng": 75.854,
       "rating": 4.95,
       "totalRatings": 420,
       "totalTrips": 590,
-      "walletBalance": 5120
+      "walletBalance": 5120,
+      "adminApproved": true,
+      "heading": 270.0,
+      "lastLocationUpdate": "2026-11-04T12:00:00Z"
     },
     {
       "id": "02765bb4-3145-4335-a660-c7818580289d",
@@ -729,10 +739,15 @@
       "userId": "b7d4eb90-7a8b-4d2d-a2a5-c004823ec9fd",
       "licenseNumber": "DL-999999999999",
       "verificationStatus": "APPROVED",
-      "isOnline": false,
+      "isOnline": true,
       "rating": 5,
       "walletBalance": 0,
-      "rejectionReason": null
+      "rejectionReason": null,
+      "adminApproved": true,
+      "currentLat": 22.728,
+      "currentLng": 75.869,
+      "heading": 60.0,
+      "lastLocationUpdate": "2026-11-04T12:00:00Z"
     },
     {
       "id": "e2503114-4330-4e7f-9b4d-2b769126bf65",
@@ -741,10 +756,15 @@
       "userId": "a8905c8b-59c1-46a4-a509-7c4219596ccb",
       "licenseNumber": "DL-21973166",
       "verificationStatus": "APPROVED",
-      "isOnline": false,
+      "isOnline": true,
       "rating": 5,
       "walletBalance": 0,
-      "rejectionReason": null
+      "rejectionReason": null,
+      "adminApproved": true,
+      "currentLat": 22.723,
+      "currentLng": 75.859,
+      "heading": 120.0,
+      "lastLocationUpdate": "2026-11-04T12:00:00Z"
     },
     {
       "id": "a9574033-414c-4475-9f2b-c4f877c181d2",
@@ -753,11 +773,16 @@
       "userId": "f0d2c746-4cc2-4f81-9488-ff03f8a782c5",
       "licenseNumber": "DL-81262840",
       "verificationStatus": "APPROVED",
-      "isOnline": false,
+      "isOnline": true,
       "rating": 5,
       "walletBalance": 0,
       "totalTrips": 0,
-      "rejectionReason": null
+      "rejectionReason": null,
+      "adminApproved": true,
+      "currentLat": 22.716,
+      "currentLng": 75.862,
+      "heading": 300.0,
+      "lastLocationUpdate": "2026-11-04T12:00:00Z"
     },
     {
       "id": "9cbde9e2-d03e-49fa-91ae-7b9ac2b6359f",
@@ -765,11 +790,16 @@
       "updatedAt": "2026-11-02T07:19:49.348Z",
       "userId": "501cb147-8ab6-4390-9a85-10d9cefe15e4",
       "licenseNumber": "DL-66718611",
-      "verificationStatus": "PENDING",
-      "isOnline": false,
+      "verificationStatus": "APPROVED",
+      "isOnline": true,
       "rating": 5,
       "walletBalance": 0,
-      "totalTrips": 0
+      "totalTrips": 0,
+      "adminApproved": true,
+      "currentLat": 22.731,
+      "currentLng": 75.875,
+      "heading": 15.0,
+      "lastLocationUpdate": "2026-11-04T12:00:00Z"
     },
     {
       "id": "fe547176-bc62-425f-988a-6e6b4f2cb5af",
@@ -1806,52 +1836,60 @@
       "createdAt": "2026-10-30T11:43:32.866Z",
       "updatedAt": "2026-10-30T11:43:32.866Z",
       "driverId": "1dd29544-96d7-4b39-9109-3a570ef135eb",
-      "category": "AUTO",
+      "category": "BIKE",
       "make": "Bajaj",
-      "model": "RE Compact CNG",
+      "model": "Hero Splendor Plus",
       "year": 2022,
       "registrationNumber": "DL 1R 8842",
       "color": "Green & Yellow",
-      "capacity": 3
+      "capacity": 3,
+      "plateNumber": "MP-09-BK-4012",
+      "vehicleNumber": "MP-09-BK-4012"
     },
     {
       "id": "23c4d706-bdd8-4956-bb4e-a167dfb90d99",
       "createdAt": "2026-10-30T11:43:32.867Z",
       "updatedAt": "2026-10-30T11:43:32.867Z",
       "driverId": "7aade868-f8e5-463b-952b-d02ca433ee64",
-      "category": "SEDAN",
+      "category": "BIKE",
       "make": "Maruti Suzuki",
-      "model": "Dzire VXi Prime",
+      "model": "Bajaj Pulsar 150",
       "year": 2023,
       "registrationNumber": "HR 26 DQ 4920",
       "color": "Silver Metallic",
-      "capacity": 4
+      "capacity": 4,
+      "plateNumber": "MP-09-BK-8821",
+      "vehicleNumber": "MP-09-BK-8821"
     },
     {
       "id": "bfd8de83-85fa-4a90-8c75-61566905cd0b",
       "createdAt": "2026-10-30T11:43:32.868Z",
       "updatedAt": "2026-10-30T11:43:32.868Z",
       "driverId": "c23b1edd-ac13-41ef-8e1f-9fd94dc16452",
-      "category": "BIKE",
+      "category": "AUTO",
       "make": "Hero",
-      "model": "Splendor Plus",
+      "model": "Bajaj Compact RE",
       "year": 2024,
       "registrationNumber": "UP 16 CG 9012",
       "color": "Black & Red",
-      "capacity": 1
+      "capacity": 1,
+      "plateNumber": "MP-09-AT-5510",
+      "vehicleNumber": "MP-09-AT-5510"
     },
     {
       "id": "8616b503-6dcc-4e5a-8dac-7ee2f5438878",
       "createdAt": "2026-10-30T11:43:32.870Z",
       "updatedAt": "2026-10-30T11:43:32.870Z",
       "driverId": "0369e9e6-c5ed-46d0-9e9f-23fb1dc44823",
-      "category": "SUV",
+      "category": "AUTO",
       "make": "Maruti Suzuki",
-      "model": "Ertiga ZXi Hybrid",
+      "model": "Piaggio Ape City",
       "year": 2023,
       "registrationNumber": "DL 01 BA 5021",
       "color": "Pearl White",
-      "capacity": 6
+      "capacity": 6,
+      "plateNumber": "MP-09-AT-9034",
+      "vehicleNumber": "MP-09-AT-9034"
     },
     {
       "id": "e012c9e5-82dd-46f1-b0cf-80d7032a0b21",
@@ -1860,50 +1898,58 @@
       "driverId": "02765bb4-3145-4335-a660-c7818580289d",
       "category": "AUTO",
       "make": "Bajaj",
-      "model": "Compact RE",
+      "model": "Mahindra Treo Electric",
       "year": 2024,
       "registrationNumber": "DL 01 RN 3316",
       "color": "Yellow-Green",
-      "capacity": 3
+      "capacity": 3,
+      "plateNumber": "MP-09-AT-1122",
+      "vehicleNumber": "MP-09-AT-1122"
     },
     {
       "id": "27360901-36dd-4a54-be23-0c94e0ab6506",
       "createdAt": "2026-11-02T06:07:20.840Z",
       "updatedAt": "2026-11-02T06:07:20.840Z",
       "driverId": "e2503114-4330-4e7f-9b4d-2b769126bf65",
-      "category": "AUTO",
+      "category": "MINI",
       "make": "Bajaj",
-      "model": "Compact RE",
+      "model": "Maruti WagonR Tour",
       "year": 2024,
       "registrationNumber": "DL 01 RN 6357",
       "color": "Yellow-Green",
-      "capacity": 3
+      "capacity": 3,
+      "plateNumber": "MP-09-CA-3301",
+      "vehicleNumber": "MP-09-CA-3301"
     },
     {
       "id": "cd6d19d6-a0de-4a23-8d82-778d2172fb37",
       "createdAt": "2026-11-02T06:42:18.376Z",
       "updatedAt": "2026-11-02T06:42:18.376Z",
       "driverId": "a9574033-414c-4475-9f2b-c4f877c181d2",
-      "category": "AUTO",
+      "category": "SEDAN",
       "make": "Bajaj",
-      "model": "Compact RE",
+      "model": "Maruti Dzire Tour S",
       "year": 2024,
       "registrationNumber": "DL 01 RN 9999",
       "color": "Yellow-Green",
-      "capacity": 3
+      "capacity": 3,
+      "plateNumber": "MP-09-CA-7789",
+      "vehicleNumber": "MP-09-CA-7789"
     },
     {
       "id": "20ac9674-5cc3-4f04-9364-b511a2a406f9",
       "createdAt": "2026-11-02T07:19:49.349Z",
       "updatedAt": "2026-11-02T07:19:49.349Z",
       "driverId": "9cbde9e2-d03e-49fa-91ae-7b9ac2b6359f",
-      "category": "AUTO",
+      "category": "SUV",
       "make": "Bajaj",
-      "model": "Compact RE",
+      "model": "Maruti Ertiga ZXi",
       "year": 2024,
       "registrationNumber": "DL 01 RN 9999",
       "color": "Yellow-Green",
-      "capacity": 3
+      "capacity": 3,
+      "plateNumber": "MP-09-CA-9955",
+      "vehicleNumber": "MP-09-CA-9955"
     },
     {
       "id": "8d74ee1b-185b-479a-b6f0-9adbe861d6ea",
@@ -3558,7 +3604,7 @@
     {
       "id": "promo-1",
       "code": "WELCOME50",
-      "description": "Get 50% OFF up to ₹100 on your first 3 rides in India",
+      "description": "Get 50% OFF up to \u20b9100 on your first 3 rides in India",
       "discountPercent": 50,
       "maxDiscount": 100,
       "minRideAmount": 60,
@@ -3571,7 +3617,7 @@
     {
       "id": "promo-2",
       "code": "RIDEINDIA",
-      "description": "Flat ₹50 OFF on Sedan and SUV rides",
+      "description": "Flat \u20b950 OFF on Sedan and SUV rides",
       "discountPercent": 20,
       "maxDiscount": 75,
       "minRideAmount": 150,
@@ -3672,7 +3718,7 @@
       "subject": "AC was not turned on during afternoon trip",
       "description": "Driver insisted on keeping windows rolled down despite 42C Delhi weather. Asked for refund of AC comfort fee.",
       "status": "RESOLVED",
-      "resolution": "Apologized to customer and credited ₹50 wallet compensation.",
+      "resolution": "Apologized to customer and credited \u20b950 wallet compensation.",
       "resolvedBy": "Vikrant Roy (Super Admin)"
     },
     {
@@ -5160,7 +5206,7 @@
       "targetEntity": "FareConfiguration",
       "targetId": "AUTO",
       "performedBy": "a8905c8b-59c1-46a4-a509-7c4219596ccb",
-      "details": "Updated rates for AUTO: Base ₹40, Per KM ₹12, Surge 1.2x",
+      "details": "Updated rates for AUTO: Base \u20b940, Per KM \u20b912, Surge 1.2x",
       "ipAddress": "::ffff:127.0.0.1"
     },
     {
@@ -5204,7 +5250,7 @@
       "targetEntity": "FareConfiguration",
       "targetId": "AUTO",
       "performedBy": "a8905c8b-59c1-46a4-a509-7c4219596ccb",
-      "details": "Updated rates for AUTO: Base ₹40, Per KM ₹12, Surge 1.2x",
+      "details": "Updated rates for AUTO: Base \u20b940, Per KM \u20b912, Surge 1.2x",
       "ipAddress": "::ffff:127.0.0.1"
     },
     {
@@ -5248,7 +5294,7 @@
       "targetEntity": "FareConfiguration",
       "targetId": "AUTO",
       "performedBy": "a8905c8b-59c1-46a4-a509-7c4219596ccb",
-      "details": "Updated rates for AUTO: Base ₹40, Per KM ₹12, Surge 1.2x",
+      "details": "Updated rates for AUTO: Base \u20b940, Per KM \u20b912, Surge 1.2x",
       "ipAddress": "::ffff:127.0.0.1"
     },
     {
@@ -5270,7 +5316,7 @@
       "targetEntity": "FareConfiguration",
       "targetId": "AUTO",
       "performedBy": "a8905c8b-59c1-46a4-a509-7c4219596ccb",
-      "details": "Updated rates for AUTO: Base ₹40, Per KM ₹12, Surge 1.2x",
+      "details": "Updated rates for AUTO: Base \u20b940, Per KM \u20b912, Surge 1.2x",
       "ipAddress": "::ffff:127.0.0.1"
     },
     {
@@ -5303,7 +5349,7 @@
       "targetEntity": "FareConfiguration",
       "targetId": "AUTO",
       "performedBy": "a8905c8b-59c1-46a4-a509-7c4219596ccb",
-      "details": "Updated rates for AUTO: Base ₹40, Per KM ₹12, Surge 1.2x",
+      "details": "Updated rates for AUTO: Base \u20b940, Per KM \u20b912, Surge 1.2x",
       "ipAddress": "::ffff:127.0.0.1"
     },
     {
@@ -5347,7 +5393,7 @@
       "targetEntity": "FareConfiguration",
       "targetId": "AUTO",
       "performedBy": "a8905c8b-59c1-46a4-a509-7c4219596ccb",
-      "details": "Updated rates for AUTO: Base ₹40, Per KM ₹12, Surge 1.2x",
+      "details": "Updated rates for AUTO: Base \u20b940, Per KM \u20b912, Surge 1.2x",
       "ipAddress": "::ffff:127.0.0.1"
     },
     {
@@ -5391,7 +5437,7 @@
       "targetEntity": "FareConfiguration",
       "targetId": "AUTO",
       "performedBy": "a8905c8b-59c1-46a4-a509-7c4219596ccb",
-      "details": "Updated rates for AUTO: Base ₹40, Per KM ₹12, Surge 1.2x",
+      "details": "Updated rates for AUTO: Base \u20b940, Per KM \u20b912, Surge 1.2x",
       "ipAddress": "::ffff:127.0.0.1"
     },
     {

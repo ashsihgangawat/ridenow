@@ -353,7 +353,7 @@ class DriverDashboardNotifier extends StateNotifier<DriverDashboardState> {
       ApiEndpoints.updateLocation,
       data: {
         'lat': newLocation.latitude,
-        'lng': newLocation.longitude,
+        'lng': newLocation.longitude, 'heading': heading,
       },
     ).then((_) {}).catchError((_) {});
   }
